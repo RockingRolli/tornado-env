@@ -4,6 +4,8 @@ VENV_PYLINT = ./.venv/bin/pylint
 VENV_TWINE = ./.venv/bin/twine
 CURRENT_DIR = $(shell pwd)
 
+.PHONY: build
+
 clean:
 	-rm -rf .venv
 
@@ -23,8 +25,9 @@ develop:
 	$(VENV_PIP) install --upgrade pip
 
 build:
+	-rm -rf dist
 	$(VENV_PYTHON) setup.py bdist_wheel
 	$(VENV_PYTHON) setup.py sdist
 
-release:
+release: build
 	$(VENV_TWINE) upload dist/*

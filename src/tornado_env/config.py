@@ -3,8 +3,24 @@ import re
 
 from .exceptions import ConfigError
 
+
+# pylint: disable=too-few-public-methods
+class Config:
+    def __init__(self):
+        self._config = {}
+
+    def __setattr__(self, key, value):
+        self.__dict__[key] = value
+
+    def __getattr__(self, item):
+        try:
+            return self.__dict__[item]
+        except KeyError:
+            raise ConfigError('Config parameter "{}" is not defined.'.format(item))
+
+
 # pylint: disable=invalid-name
-config = {}
+config = Config()
 
 
 # pylint: disable=too-few-public-methods
@@ -84,15 +100,11 @@ def parse_config(app, app_config, env_file=None):
     :param app_config: Config dictionary.
     :param env_file: Optional path to environment file.
     """
-    # A bit ugly, needs to be improved soon
-    # pylint: disable=global-statement
-    global config
-    config = {}
-
     if env_file:
         parse_env_file(env_file)
 
     for config_name, config_settings in app_config.items():
         value = get_from_env(**config_settings)
         app.settings[config_name] = value
-        config[config_name] = value
+
+        setattr(config, config_name, value)
